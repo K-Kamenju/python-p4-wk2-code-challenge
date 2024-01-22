@@ -52,7 +52,7 @@ def pizzas():
         pizza_data = {
             "id": pizza.id,
             "name": pizza.name,
-            "description": pizza.description  # Ensure the model has a 'description' field
+            "ingredients": pizza.ingredients  # Ensure the model has a 'ingredients' field
         }
         pizzas_list.append(pizza_data)
 
@@ -68,7 +68,7 @@ def pizzas_by_id(id):
             pizza_data = {
                 "id": pizza.id,
                 "name": pizza.name,
-                "description": pizza.description
+                "ingredients": pizza.ingredients
             }
             return make_response(jsonify(pizza_data), 200)
         else:
@@ -91,7 +91,7 @@ def pizzas_by_id(id):
                 pizza_data = {
                     "id": pizza.id,
                     "name": pizza.name,
-                    "description": pizza.description
+                    "ingredients": pizza.ingredients
                 }
                 return make_response(jsonify(pizza_data), 200)
 
@@ -105,26 +105,33 @@ def pizzas_by_id(id):
             return make_response(jsonify(error_response), 404)
 
 
-@app.route('/restaurant_pizzas', methods=['POST'])
+@app.route('/restaurant_pizzas', methods=['GET', 'POST'])
 def restaurant_pizzas():
-    data = request.get_json()
+    
+    if request.method == "POST":
+        data = request.get_json()
 
-    try:
-        new_restaurant_pizza = RestaurantPizza(
-            price=data['price'],
-            pizza_id=data['pizza_id'],
-            restaurant_id=data['restaurant_id']
-        )
+        try:
+            new_restaurant_pizza = RestaurantPizza(
+                price=data['price'],
+                pizza_id=data['pizza_id'],
+                restaurant_id=data['restaurant_id']
+            )
 
-        db.session.add(new_restaurant_pizza)
-        db.session.commit()
+            db.session.add(new_restaurant_pizza)
+            db.session.commit()
 
-        return make_response(new_restaurant_pizza.to_dict(), 201)
+            return make_response(new_restaurant_pizza.to_dict(), 201)
 
-    except IntegrityError as e:  # Catch IntegrityError for validation issues
-        db.session.rollback()
-        error_response = {"error": "Integrity error: {}".format(str(e))}
-        return make_response(jsonify(error_response), 400)
+        except IntegrityError as e:  # Catch IntegrityError for validation issues
+            db.session.rollback()
+            error_response = {"error": "Integrity error: {}".format(str(e))}
+            return make_response(jsonify(error_response), 400)
+        
+    elif request.method == 'GET':
+        # Handle GET request (return a list of restaurant_pizzas)
+        restaurant_pizzas_list = [rp.to_dict() for rp in RestaurantPizza.query.all()]
+        return make_response(jsonify(restaurant_pizzas_list), 200)
 
 
 if __name__ == '__main__':
