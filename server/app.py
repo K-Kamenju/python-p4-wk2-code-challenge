@@ -111,22 +111,19 @@ def restaurant_pizzas():
     if request.method == "POST":
         data = request.get_json()
 
-        try:
-            new_restaurant_pizza = RestaurantPizza(
-                price=data['price'],
-                pizza_id=data['pizza_id'],
-                restaurant_id=data['restaurant_id']
-            )
+        
+        new_restaurant_pizza = RestaurantPizza(
+            price=data['price'],
+            pizza_id=data['pizza_id'],
+            restaurant_id=data['restaurant_id']
+        )
 
-            db.session.add(new_restaurant_pizza)
-            db.session.commit()
+        db.session.add(new_restaurant_pizza)
+        db.session.commit()
 
-            return make_response(new_restaurant_pizza.to_dict(), 201)
+        return make_response(new_restaurant_pizza.to_dict(), 201)
 
-        except IntegrityError as e:  # Catch IntegrityError for validation issues
-            db.session.rollback()
-            error_response = {"error": "Integrity error: {}".format(str(e))}
-            return make_response(jsonify(error_response), 400)
+        
         
     elif request.method == 'GET':
         # Handle GET request (return a list of restaurant_pizzas)

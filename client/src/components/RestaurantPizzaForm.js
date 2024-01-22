@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router";
 
 function RestaurantPizzaForm() {
@@ -11,41 +11,67 @@ function RestaurantPizzaForm() {
   const history = useHistory();
 
   useEffect(() => {
-    fetch("/restaurants")
-      .then((r) => r.json())
-      .then(setRestaurants);
-  }, []);
+    // Fetch pizzas and restaurants
+    const fetchData = async () => {
+      try {
+        const pizzasResponse = await fetch("/pizzas");
+        const restaurantsResponse = await fetch("/restaurants");
 
-  useEffect(() => {
-    fetch("/pizzas")
-      .then((r) => r.json())
-      .then(setPizzas);
+        const pizzasData = await pizzasResponse.json();
+        const restaurantsData = await restaurantsResponse.json();
+
+        setPizzas(pizzasData);
+        setRestaurants(restaurantsData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
   }, []);
 
   function handleSubmit(e) {
     e.preventDefault();
+
     const formData = {
-      restaurant_id: restaurantId,
       pizza_id: pizzaId,
       price,
+      restaurant_id: restaurantId
     };
-    fetch("/restaurant_pizzas", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    })
-      .then((r) => r.json())
-      .then((newRestaurantPizza) => {
-        history.push(`/restaurants/${newRestaurantPizza.hero.id}`);
-      })
-      .catch((err) => setFormErrors(err.errors));
-  }
 
+    console.log("Before fetch");
+  fetch("/restaurant_pizzas", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(formData),
+  })
+    .then((r) => {
+      console.log("Inside then");
+      if (!r.ok) {
+        throw new Error("Failed to add restaurant pizza");
+      }
+      return r.json();
+    })
+    .then((newRestaurantPizza) => {
+      console.log("Success:", newRestaurantPizza);
+      history.push(`/restaurants/${newRestaurantPizza.restaurant.id}`);
+    })
+    .catch((err) => {
+      console.error("Error:", err);
+      setFormErrors([err.message]);
+    });
+    }
+
+  // Check if data is still loading
+  if (!restaurants || !pizzas) {
+    return <h1>Loading...</h1>;
+  }
 
   return (
     <form onSubmit={handleSubmit}>
+      {/* Pizza Selection */}
       <label htmlFor="pizza_id">Pizza:</label>
       <select
         id="pizza_id"
@@ -60,6 +86,8 @@ function RestaurantPizzaForm() {
           </option>
         ))}
       </select>
+
+      {/* Restaurant Selection */}
       <label htmlFor="restaurant_id">Restaurant:</label>
       <select
         id="restaurant_id"
@@ -74,7 +102,9 @@ function RestaurantPizzaForm() {
           </option>
         ))}
       </select>
-      <label htmlFor="price">price:</label>
+
+      {/* Price Input */}
+      <label htmlFor="price">Price:</label>
       <input
         type="text"
         id="price"
@@ -82,13 +112,17 @@ function RestaurantPizzaForm() {
         value={price}
         onChange={(e) => setPrice(e.target.value)}
       />
-      {formErrors.length > 0
-        ? formErrors.map((err) => (
-            <p key={err} style={{ color: "red" }}>
-              {err}
-            </p>
-          ))
-        : null}
+
+      {/* Display Form Errors */}
+      {formErrors.length > 0 && (
+        <div style={{ color: "red" }}>
+          {formErrors.map((err, index) => (
+            <p key={index}>{err}</p>
+          ))}
+        </div>
+      )}
+
+      {/* Submit Button */}
       <button type="submit">Add Restaurant Pizza</button>
     </form>
   );

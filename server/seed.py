@@ -1,7 +1,8 @@
 from app import app
 from models import db, Restaurant, Pizza, RestaurantPizza
 
-from random import choice
+from random import randint, choice as rc
+
 
 with app.app_context():
     
@@ -23,7 +24,9 @@ with app.app_context():
         Restaurant(name="Veggie Villa", address="987 Veggie Ave"),
     ]
 
-    db.session.bulk_save_objects(restaurants)
+    for restaurant in restaurants:
+        db.session.add(restaurant)
+
     db.session.commit()
 
     # Create pizzas
@@ -45,18 +48,23 @@ with app.app_context():
         Pizza(name="Margarita", ingredients="Tomato, Mozzarella, Basil, Olive Oil"),
     ]
 
-    db.session.bulk_save_objects(pizzas)
+    for pizza in pizzas:
+        db.session.add(pizza)
+
     db.session.commit()
 
     # Create RestaurantPizza relationships
+    # Add validations to the RestaurantPizza model
     restaurant_pizzas = [
         RestaurantPizza(
-            price=choice(range(1, 31)),
-            pizza_id=choice(pizzas).id,
-            restaurant_id=choice(restaurants).id
+            restaurant_id=randint(1, len(restaurants)),
+            pizza_id=randint(1, len(pizzas)),
+            price=randint(1, 30),  # Ensure price is between 1 and 30
         )
-        for _ in range(20)
+        for _ in range(15)
     ]
 
-    db.session.bulk_save_objects(restaurant_pizzas)
+    for rp in restaurant_pizzas:
+            db.session.add(rp)
+
     db.session.commit()

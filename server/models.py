@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_serializer import SerializerMixin
-from sqlalchemy.orm import validates
+from sqlalchemy import CheckConstraint
 
 db = SQLAlchemy()
 
@@ -44,8 +44,7 @@ class RestaurantPizza(db.Model, SerializerMixin):
     restaurant_id = db.Column(db.Integer, db.ForeignKey("restaurants.id"))
     pizza_id = db.Column(db.Integer, db.ForeignKey("pizzas.id"))
     
-    @validates('price')
-    def validate_price(self, key, price):
-        if not (1 <= price <= 30):
-            raise ValueError("Price must be between 1 and 30.")
-        return price
+    # Validation for price between 1 and 30
+    __table_args__ = (
+        CheckConstraint('price >= 1 AND price <= 30', name='check_price_range'),
+    )

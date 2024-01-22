@@ -13,16 +13,16 @@ function App() {
       <main>
         <Switch>
           <Route exact path="/restaurant_pizzas/new">
-            <HeroPowerForm />
+            <RestaurantPizzaForm />
           </Route>
           <Route exact path="/pizzas/:id/edit">
-            <PowerEditForm />
+            <PizzaEditForm />
           </Route>
           <Route exact path="/pizzas/:id">
-            <Power />
+            <Pizza />
           </Route>
           <Route exact path="/restaurants/:id">
-            <Hero />
+            <Restaurant />
           </Route>
           <Route exact path="/">
             <Home />
